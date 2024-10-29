@@ -9,16 +9,16 @@ import { List, ListItemAvatar, ListItem, ListItemText, Stack, TextField, Button 
 
 interface BookListItemProps {
     book: books_v1.Schema$Volume,
-     handleAddBook: Function
+    handleAddBook: Function
 }
 
 interface BooksListItemsProps {
     books: books_v1.Schema$Volume[],
-     handleAddBook: Function
+    handleAddBook: Function
 }
 
 const BookListItem = ({ book, handleAddBook }: BookListItemProps) => {
-    const onAddBook = ()=>{
+    const onAddBook = () => {
         handleAddBook(book);
     }
 
@@ -44,20 +44,7 @@ const BooksListItems = ({ books, handleAddBook }: BooksListItemsProps) => {
 
 
 export default function SearchBook() {
-
-    const [searchIsbnList, setSearchIsbnList] = useState<books_v1.Schema$Volume[]>([]);
-    const [searchBookList, setSearchBookList] = useState<books_v1.Schema$Volume[]>([]);
-
-    const fetchBookInfosFromIsbn = async (isbn: string) => {
-        const res = await fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn);
-        if (!res.ok) {
-            throw new Error(`Respon
-se status: ${res.status}`);
-        }
-
-        const data = await res.json();
-        return data.items;
-    }
+    const [searchResult, setSearchResult] = useState<books_v1.Schema$Volume[]>([]);
 
 
     const fetchBookSearchResult = async (search: string) => {
@@ -70,22 +57,6 @@ se status: ${res.status}`);
         return data.items;
     }
 
-
-    const handleIsbnSubmit = async (e: any) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        // Read the form data
-        const form = e.target;
-        const formData = new FormData(form);
-        const isbn = String(formData.get("isbn"));
-
-        const books = await fetchBookInfosFromIsbn(isbn);
-
-        console.log(books);
-
-        setSearchIsbnList(books);
-    }
     const handleSearchSubmit = async (e: any) => {
         e.stopPropagation();
         e.preventDefault();
@@ -97,36 +68,25 @@ se status: ${res.status}`);
 
         const books = await fetchBookSearchResult(search);
 
-        setSearchBookList(books);
+        setSearchResult(books);
     }
 
-    const handleAddBook = (book: books_v1.Schema$Volume)=>{
-        console.log("add",book);
+    const handleAddBook = (book: books_v1.Schema$Volume) => {
+        console.log("add", book);
     }
 
 
     return (<>
-    <Stack spacing={2}>
-        <form onSubmit={handleIsbnSubmit} className={styles.formRow}>
-            <TextField className={styles.field} id="isbn" label="Numéro ISBN du livre" name="isbn" type="text" />
-            <Button variant="contained" type="submit">Chercher</Button>
-        </form>
-        {
-            searchIsbnList && searchIsbnList.length > 0 ? (< List className={styles.bookList}>
-                {BooksListItems({books:searchIsbnList, handleAddBook})}
-            </List >) : null
-        }
 
         <form onSubmit={handleSearchSubmit} className={styles.formRow}>
             <TextField className={styles.field} id="search" name="search" label="Titre, auteurs..." type="text" />
             <Button variant="contained" type="submit">Chercher</Button>
         </form>
         {
-            searchBookList && searchBookList.length > 0 ? (< List className={styles.bookList}>
-                {BooksListItems({books:searchBookList, handleAddBook})}
+            searchResult && searchResult.length > 0 ? (< List className={styles.bookList}>
+                {BooksListItems({ books: searchResult, handleAddBook })}
             </List >) : null
         }
-        </Stack>
     </>
     )
 }
