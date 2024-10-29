@@ -1,4 +1,39 @@
 .bookThumbnail {
-    max-height: 56px;
-    max-width: 56px;
+    height: 56px;
+    min-width: 35px;
+    background-color: #dad3d3;
+}
+
+.bookItem {
+    border: solid 1px black;
+    border-radius: 5px;
+    gap: 10px;
+
+    .bookDescription {
+        span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    button {
+        white-space: nowrap;
+    }
+}
+
+.formRow {
+    display: flex;
+    flex-basis: 100%;
+    gap: 10px;
+
+    .field {
+        flex: 1;
+    }
+}
+
+.bookList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }

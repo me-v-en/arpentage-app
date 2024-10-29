@@ -3,25 +3,41 @@ import { useState } from "react";
 import styles from "./search.module.scss";
 
 import { books_v1 } from 'googleapis';
-import { List, ListItemAvatar, ListItemButton, ListItemText, TextField } from "@mui/material";
+import { List, ListItemAvatar, ListItem, ListItemText, Stack, TextField, Button } from "@mui/material";
 
 
 
 interface BookListItemProps {
-    book: books_v1.Schema$Volume
-
+    book: books_v1.Schema$Volume,
+     handleAddBook: Function
 }
-const BookListItem = ({ book }: BookListItemProps) => {
-    return <ListItemButton>
+
+interface BooksListItemsProps {
+    books: books_v1.Schema$Volume[],
+     handleAddBook: Function
+}
+
+const BookListItem = ({ book, handleAddBook }: BookListItemProps) => {
+    const onAddBook = ()=>{
+        handleAddBook(book);
+    }
+
+
+    const authorsList = book?.volumeInfo?.authors?.join(', ');
+
+    return <ListItem className={styles.bookItem}>
         <ListItemAvatar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
             <img className={styles.bookThumbnail} src={book?.volumeInfo?.imageLinks?.smallThumbnail} alt="" />
         </ListItemAvatar>
-        <ListItemText>{book?.volumeInfo?.title}</ListItemText>
-    </ListItemButton>
+        <ListItemText className={styles.bookDescription} primary={book?.volumeInfo?.title} secondary={authorsList}></ListItemText>
+        <Button onClick={onAddBook}>
+            Ajouter ce livre
+        </Button>
+    </ListItem>
 }
 
-const BooksListItems = (books: books_v1.Schema$Volume[]) => {
-    return books.map((book) => (<BookListItem key={book.id} book={book}></BookListItem>))
+const BooksListItems = ({ books, handleAddBook }: BooksListItemsProps) => {
+    return books.map((book) => (<BookListItem key={book.id} book={book} handleAddBook={handleAddBook}></BookListItem>))
 }
 
 
@@ -35,7 +51,8 @@ export default function SearchBook() {
     const fetchBookInfosFromIsbn = async (isbn: string) => {
         const res = await fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn);
         if (!res.ok) {
-            throw new Error(`Response status: ${res.status}`);
+            throw new Error(`Respon
+se status: ${res.status}`);
         }
 
         const data = await res.json();
@@ -83,28 +100,33 @@ export default function SearchBook() {
         setSearchBookList(books);
     }
 
+    const handleAddBook = (book: books_v1.Schema$Volume)=>{
+        console.log("add",book);
+    }
 
 
     return (<>
-        <form onSubmit={handleIsbnSubmit}>
-            <TextField id="isbn" label="Numéro ISBN du livre" name="isbn" type="text" />
+    <Stack spacing={2}>
+        <form onSubmit={handleIsbnSubmit} className={styles.formRow}>
+            <TextField className={styles.field} id="isbn" label="Numéro ISBN du livre" name="isbn" type="text" />
+            <Button variant="contained" type="submit">Chercher</Button>
         </form>
         {
-            searchIsbnList && searchIsbnList.length > 0 ? (< List >
-                {BooksListItems(searchIsbnList)}
+            searchIsbnList && searchIsbnList.length > 0 ? (< List className={styles.bookList}>
+                {BooksListItems({books:searchIsbnList, handleAddBook})}
             </List >) : null
         }
 
-        <form onSubmit={handleSearchSubmit}>
-            <TextField id="search" name="search" label="Rechercher un livre par titre, auteur etc." type="text" />
-
-
+        <form onSubmit={handleSearchSubmit} className={styles.formRow}>
+            <TextField className={styles.field} id="search" name="search" label="Titre, auteurs..." type="text" />
+            <Button variant="contained" type="submit">Chercher</Button>
         </form>
         {
-            searchBookList && searchBookList.length > 0 ? (< List >
-                {BooksListItems(searchBookList)}
+            searchBookList && searchBookList.length > 0 ? (< List className={styles.bookList}>
+                {BooksListItems({books:searchBookList, handleAddBook})}
             </List >) : null
         }
+        </Stack>
     </>
     )
 }
