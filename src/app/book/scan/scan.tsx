@@ -12,7 +12,7 @@ import { Html5QrcodeError } from "html5-qrcode/esm/core";
 
 export default function ScanBook() {
 
-    const [scannedIsbn, setScannedIsbn] = useState<String>("");
+    const [scannedIsbn, setScannedIsbn] = useState<String>("Test");
     const [correspondingBooks, setCorrespondingBooks] = useState<books_v1.Schema$Volume[]>([]);
 
     const fetchBookInfosFromIsbn = async (isbn: string) => {
@@ -57,7 +57,11 @@ se status: ${res.status}`);
         const verbose = true;
         // Suceess callback is required.
 
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, verbose);
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+            fps: 10, qrbox: { width: 250, height: 250 }, disableFlip: false, useBarCodeDetectorIfSupported: true, experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            },
+        }, verbose);
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
         // cleanup function when component will unmount
@@ -70,7 +74,7 @@ se status: ${res.status}`);
 
     return (<>
         <div id="reader" className={styles.scanner}></div>
-        <p>{ scannedIsbn }</p>
+        <p>{scannedIsbn}</p>
     </>
     )
 }
