@@ -2,15 +2,14 @@
 import { useState } from "react";
 import styles from "./scan.module.scss";
 
-import { Html5QrcodeResult, Html5QrcodeScanner } from "html5-qrcode";
-
 import { books_v1 } from 'googleapis';
 import { useEffect } from "react";
-import { Html5QrcodeError } from "html5-qrcode/esm/core";
 
+import Quagga from 'quagga';
 
 
 export default function ScanBook() {
+    console.log(Quagga);
 
     const [scannedIsbn, setScannedIsbn] = useState<String>("Test");
     const [correspondingBooks, setCorrespondingBooks] = useState<books_v1.Schema$Volume[]>([]);
@@ -18,8 +17,7 @@ export default function ScanBook() {
     const fetchBookInfosFromIsbn = async (isbn: string) => {
         const res = await fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn);
         if (!res.ok) {
-            throw new Error(`Respon
-se status: ${res.status}`);
+            throw new Error(`Response status: ${res.status}`);
         }
 
         const data = await res.json();
@@ -41,39 +39,70 @@ se status: ${res.status}`);
 
         setCorrespondingBooks(books);
     }
-    const onScanSuccess = (decodedText: String, decodedResult: Html5QrcodeResult) => {
-        setScannedIsbn(decodedText);
+
+    const handleDetectBarcode = (barcode: any) => {
+        console.log(barcode?.codeResult);
+        setScannedIsbn(barcode?.codeResult);
     }
 
-    const onScanFailure = (errorMessage: String, error: Html5QrcodeError) => {
-
-        // handle scan failure, usually better to ignore and keep scanning.
-        // for example:
-        console.warn(`Code scan error = ${errorMessage}`);
-    }
 
     useEffect(() => {
-        // when component mounts
-        const verbose = true;
-        // Suceess callback is required.
-
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
-            fps: 10, qrbox: { width: 250, height: 250 }, disableFlip: false, useBarCodeDetectorIfSupported: true, experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
+        Quagga.init(
+            {
+                inputStream: {
+                    type: 'LiveStream',
+                    constraints: {
+                        width: 640,
+                        height: 320,
+                        facingMode: 'environment',
+                    },
+                },
+                locator: {
+                    halfSample: true,
+                    patchSize: "large", // x-small, small, medium, large, x-large
+                    debug: {
+                        showCanvas: true,
+                        showPatches: false,
+                        showFoundPatches: false,
+                        showSkeleton: false,
+                        showLabels: false,
+                        showPatchLabels: false,
+                        showRemainingPatchLabels: false,
+                        boxFromPatches: {
+                            showTransformed: true,
+                            showTransformedBox: true,
+                            showBB: true
+                        }
+                    }
+                },
+                numOfWorkers: 4,
+                decoder: {
+                    readers: ['code_128_reader'],
+                    debug: {
+                        drawBoundingBox: true,
+                        showFrequency: true,
+                        drawScanline: true,
+                        showPattern: true
+                    },
+                },
+                locate: true,
             },
-        }, verbose);
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            function (err: any) {
+                if (err) {
+                    return console.log(err)
+                }
+                Quagga.start()
+            },
+        )
+        Quagga.onDetected(handleDetectBarcode);
 
-        // cleanup function when component will unmount
         return () => {
-            html5QrcodeScanner.clear().catch(error => {
-                console.error("Failed to clear html5QrcodeScanner. ", error);
-            });
+            Quagga.offDetected(handleDetectBarcode);
         };
     }, []);
 
     return (<>
-        <div id="reader" className={styles.scanner}></div>
+    <div id="interactive" className="viewport"></div>
         <p>{scannedIsbn}</p>
     </>
     )
