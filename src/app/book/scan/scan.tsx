@@ -5,7 +5,7 @@ import styles from "./scan.module.scss";
 import { books_v1 } from 'googleapis';
 import { useEffect } from "react";
 
-import Quagga from 'quagga';
+import Quagga from '@ericblade/quagga2';
 
 
 export default function ScanBook() {
@@ -53,20 +53,17 @@ export default function ScanBook() {
                 inputStream: {
                     type: 'LiveStream',
                     constraints: {
-                        width: 640,
-                        height: 320,
                         facingMode: 'environment',
                     },
                 },
-                frequency : 25,
                 locator: {
                     halfSample: true,
                     patchSize: "medium", // x-small, small, medium, large, x-large
                     debug: {
                         showCanvas: true,
                         showPatches: false,
-                        showFoundPatches: false,
-                        showSkeleton: false,
+                        showFoundPatches: true,
+                        showSkeleton: true,
                         showLabels: false,
                         showPatchLabels: false,
                         showRemainingPatchLabels: false,
