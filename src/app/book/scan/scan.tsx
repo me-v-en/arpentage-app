@@ -41,8 +41,9 @@ export default function ScanBook() {
     }
 
     const handleDetectBarcode = (barcode: any) => {
-        console.log(barcode?.codeResult.code);
-        setScannedIsbn(barcode?.codeResult.code);
+        const scannedBarcode = barcode?.codeResult?.code;
+        console.log(scannedBarcode);
+        setScannedIsbn(scannedBarcode);
     }
 
 
@@ -57,13 +58,34 @@ export default function ScanBook() {
                         facingMode: 'environment',
                     },
                 },
+                frequency : 25,
                 locator: {
                     halfSample: true,
-                    patchSize: "x-small", // x-small, small, medium, large, x-large
+                    patchSize: "medium", // x-small, small, medium, large, x-large
+                    debug: {
+                        showCanvas: true,
+                        showPatches: false,
+                        showFoundPatches: false,
+                        showSkeleton: false,
+                        showLabels: false,
+                        showPatchLabels: false,
+                        showRemainingPatchLabels: false,
+                        boxFromPatches: {
+                            showTransformed: true,
+                            showTransformedBox: true,
+                            showBB: true,
+                        },
+                    },
                 },
                 numOfWorkers: window.navigator.hardwareConcurrency,
                 decoder: {
-                    readers: ['code_128_reader'],
+                    readers: ['ean_reader'],
+                    debug: {
+                        drawBoundingBox: true,
+                        showFrequency: true,
+                        drawScanline: true,
+                        showPattern: true,
+                    },
                 },
                 locate: true,
             },
